@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useRef } from 'react';
 import { 
   Trophy, Medal, PlusCircle, List, Search, User, 
-  Trash2, Award, Edit2, Check, X, TrendingUp, Download, Upload, AlertCircle, Save
+  Trash2, Award, Edit2, Check, X, TrendingUp, Download, Upload, AlertCircle, Save, Lock
 } from 'lucide-react';
 import { 
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer 
@@ -61,6 +61,8 @@ export default function TrackAndFieldManager() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [toastMsg, setToastMsg] = useState({ show: false, msg: '', isError: false });
+  const [isAdminAuth, setIsAdminAuth] = useState(false);
+  const [adminPwd, setAdminPwd] = useState('');
 
   // 顯示提示訊息
   const showMessage = (msg, isError = false) => {
@@ -476,7 +478,7 @@ export default function TrackAndFieldManager() {
                       </>
                     ) : (
                       <>
-                        <td className="px-6 py-4"><span className={`px-2 py-1 rounded-md text-xs font-bold ${r.gender === '女' ? 'bg-pink-100 text-pink-700' : 'bg-blue-100 text-blue-700'}`}>{r.gender || '男'}</span></td><td className="px-6 py-4">{r.competition}</td><td className="px-6 py-4 font-bold text-indigo-600">{r.event}</td><td className="px-6 py-4 font-semibold">{r.athlete}</td><td className="px-6 py-4 font-black">{r.score}</td>
+                        <td className="px-6 py-4"><span className={`px-2 py-1 rounded-md text-xs font-bold ${normalizeGender(r.gender) === '女' ? 'bg-pink-100 text-pink-700' : 'bg-blue-100 text-blue-700'}`}>{normalizeGender(r.gender) === '女' ? '女' : '男'}</span></td><td className="px-6 py-4">{r.competition}</td><td className="px-6 py-4 font-bold text-indigo-600">{r.event}</td><td className="px-6 py-4 font-semibold">{r.athlete}</td><td className="px-6 py-4 font-black">{r.score}</td>
                         <td className="px-6 py-4">{r.rank ? <span className="bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full text-xs font-bold">第 {r.rank} 名</span> : '-'}</td>
                         <td className="px-6 py-4 text-right"><button onClick={()=>{setEditingId(r.id); setEditForm(r);}} className="text-indigo-600 p-1 mr-1"><Edit2 size={16}/></button><button onClick={()=>deleteRec(r.id)} className="text-rose-500 p-1"><Trash2 size={16}/></button></td>
                       </>
@@ -571,12 +573,6 @@ export default function TrackAndFieldManager() {
       const firstConfirm = window.confirm('⚠️ 警告：您即將刪除雲端「所有」成績資料！\n\n此操作完全無法復原，強烈建議您先點擊上方「匯出 CSV」進行備份。\n您確定要繼續嗎？');
       if (!firstConfirm) return;
 
-      const confirmText = window.prompt('🚨 防呆確認：\n為防止誤刪，請手動輸入「確認刪除」四個字來執行清空動作：');
-      if (confirmText !== '確認刪除') {
-        showMessage('已取消清空動作');
-        return;
-      }
-
       try {
         const batch = writeBatch(db);
         records.forEach(r => {
@@ -590,6 +586,30 @@ export default function TrackAndFieldManager() {
         showMessage('清空失敗，請檢查網路連線', true);
       }
     };
+
+    if (!isAdminAuth) {
+      return (
+        <div className="bg-white rounded-2xl shadow-sm p-8 border border-gray-100 max-w-sm mx-auto mt-12 text-center flex flex-col items-center">
+          <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mb-4"><Lock size={32}/></div>
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">系統管理區</h2>
+          <p className="text-sm text-gray-500 mb-6">請輸入管理員密碼以進入新增與備份系統</p>
+          <form className="w-full" onSubmit={(e) => {
+            e.preventDefault();
+            if (adminPwd === 'admin888') {
+              setIsAdminAuth(true);
+              setAdminPwd('');
+              showMessage('登入成功');
+            } else {
+              showMessage('密碼錯誤', true);
+              setAdminPwd('');
+            }
+          }}>
+            <input type="password" value={adminPwd} onChange={e => setAdminPwd(e.target.value)} className="w-full p-3 border border-gray-200 rounded-xl mb-4 text-center font-bold focus:ring-2 focus:ring-indigo-500" placeholder="請輸入密碼" />
+            <button type="submit" className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-xl transition">登入管理</button>
+          </form>
+        </div>
+      );
+    }
 
     return (
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
