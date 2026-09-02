@@ -153,19 +153,19 @@ export default function TrackAndFieldManager() {
       const isTrack = isTrackEvent(event);
       items.sort((a, b) => isTrack ? a.scoreValue - b.scoreValue : b.scoreValue - a.scoreValue);
       
-      const topUnique = [];
-      const seenAthletes = new Set();
-      for (const item of items) {
-        if (!seenAthletes.has(item.athlete)) {
-          seenAthletes.add(item.athlete);
-          topUnique.push(item);
-          if (topUnique.length === 3) break;
+          const topUnique = [];
+          const seenAthletes = new Set();
+          for (const item of items) {
+            if (!seenAthletes.has(item.athlete)) {
+              seenAthletes.add(item.athlete);
+              topUnique.push(item);
+              if (topUnique.length === 3) break;
+            }
+          }
+          result[event] = { isTrack, topRecords: topUnique };
         }
-      }
-      result[event] = { isTrack, topRecords: topUnique };
-    }
-    return result;
-  }, [records]);
+        return result;
+      }, [records, bestGender]);
 
   // -------------------------------------------------------------
   // View 1: 歷年最佳
