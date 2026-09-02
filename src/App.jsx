@@ -417,7 +417,7 @@ export default function TrackAndFieldManager() {
 
     const filteredRecords = records.filter(r => {
       const matchSearch = r.athlete.includes(searchTerm) || r.competition.includes(searchTerm);
-      const matchGender = !filterGender || (r.gender || '男') === filterGender;
+      const matchGender = !filterGender || normalizeGender(r.gender) === filterGender;
       const matchComp = !filterComp || r.competition === filterComp;
       const matchEvent = !filterEvent || r.event === filterEvent;
       return matchSearch && matchGender && matchComp && matchEvent;
