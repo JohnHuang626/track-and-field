@@ -55,6 +55,14 @@ const isTrackEvent = (eventName) => {
   return trackKeywords.some(kw => eventName.includes(kw));
 };
 
+// 性別防呆與標準化 (處理舊資料與各種寫法)
+const normalizeGender = (g) => {
+  if (!g) return '男'; // 如果沒填，預設歸為男生
+  const str = String(g).trim();
+  if (str === '女' || str === '女子' || str === '女子組' || str.toLowerCase() === 'f' || str.toLowerCase() === 'female') return '女';
+  return '男';
+};
+
 export default function TrackAndFieldManager() {
   const [activeTab, setActiveTab] = useState('best');
   const [records, setRecords] = useState([]);
@@ -63,6 +71,7 @@ export default function TrackAndFieldManager() {
   const [toastMsg, setToastMsg] = useState({ show: false, msg: '', isError: false });
   const [isAdminAuth, setIsAdminAuth] = useState(false);
   const [adminPwd, setAdminPwd] = useState('');
+  const [bestGender, setBestGender] = useState('男'); // 新增歷年最佳性別切換狀態
 
   // 顯示提示訊息
   const showMessage = (msg, isError = false) => {
@@ -130,6 +139,9 @@ export default function TrackAndFieldManager() {
   const bestRecordsByEvent = useMemo(() => {
     const grouped = {};
     records.forEach(record => {
+      // 根據選擇的性別過濾 (使用 normalizeGender 防呆)
+      if (normalizeGender(record.gender) !== bestGender) return;
+
       if (!record.event || !record.score || record.score.toUpperCase() === 'X') return;
       const scoreValue = parseScore(record.score);
       if (scoreValue === null) return;
@@ -170,9 +182,15 @@ export default function TrackAndFieldManager() {
             </h2>
             <p className="text-indigo-100 text-sm mt-1">系統自動判斷排序規則，僅呈現選手個人最佳成績</p>
           </div>
-          <div className="bg-white/10 backdrop-blur-md px-4 py-2 rounded-xl text-center border border-white/20">
-            <span className="text-xs text-indigo-200 block">紀錄項目總數</span>
-            <span className="text-xl font-black">{eventKeys.length} 項</span>
+          <div className="flex items-center gap-3">
+            <div className="bg-white/10 backdrop-blur-md p-1 rounded-xl flex shadow-inner">
+              <button onClick={() => setBestGender('男')} className={`px-4 py-2 rounded-lg font-bold text-sm transition ${bestGender === '男' ? 'bg-white text-indigo-700 shadow-md' : 'text-indigo-100 hover:bg-white/20'}`}>👦 男子組</button>
+              <button onClick={() => setBestGender('女')} className={`px-4 py-2 rounded-lg font-bold text-sm transition ${bestGender === '女' ? 'bg-white text-pink-600 shadow-md' : 'text-indigo-100 hover:bg-white/20'}`}>👧 女子組</button>
+            </div>
+            <div className="bg-white/10 backdrop-blur-md px-4 py-2 rounded-xl text-center border border-white/20 hidden sm:block">
+              <span className="text-xs text-indigo-200 block">項目總數</span>
+              <span className="text-xl font-black">{eventKeys.length}</span>
+            </div>
           </div>
         </div>
         
