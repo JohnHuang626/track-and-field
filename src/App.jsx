@@ -70,7 +70,6 @@ export default function TrackAndFieldManager() {
   const [loading, setLoading] = useState(true);
   const [toastMsg, setToastMsg] = useState({ show: false, msg: '', isError: false });
   const [isAdminAuth, setIsAdminAuth] = useState(false);
-  const [adminPwd, setAdminPwd] = useState('');
   const [bestGender, setBestGender] = useState('男'); // 新增歷年最佳性別切換狀態
 
   // 顯示提示訊息
@@ -516,6 +515,7 @@ export default function TrackAndFieldManager() {
   // -------------------------------------------------------------
   const AddManageView = () => {
     const [formData, setFormData] = useState({ gender: '男', competition: '', event: '', athlete: '', score: '', rank: '' });
+    const [adminPwd, setAdminPwd] = useState('');
     const fileInputRef = useRef(null);
 
     const handleSubmit = async (e) => {
