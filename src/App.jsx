@@ -407,6 +407,7 @@ export default function TrackAndFieldManager() {
   // -------------------------------------------------------------
   const AllRecordsView = () => {
     const [searchTerm, setSearchTerm] = useState('');
+    const [filterGender, setFilterGender] = useState(''); // 新增性別過濾
     const [filterComp, setFilterComp] = useState('');
     const [filterEvent, setFilterEvent] = useState('');
     const [editingId, setEditingId] = useState(null);
@@ -414,9 +415,10 @@ export default function TrackAndFieldManager() {
 
     const filteredRecords = records.filter(r => {
       const matchSearch = r.athlete.includes(searchTerm) || r.competition.includes(searchTerm);
+      const matchGender = !filterGender || (r.gender || '男') === filterGender;
       const matchComp = !filterComp || r.competition === filterComp;
       const matchEvent = !filterEvent || r.event === filterEvent;
-      return matchSearch && matchComp && matchEvent;
+      return matchSearch && matchGender && matchComp && matchEvent;
     }).reverse();
 
     const saveEdit = async () => {
@@ -446,6 +448,7 @@ export default function TrackAndFieldManager() {
           <div><h2 className="text-2xl font-bold flex items-center gap-2"><List className="text-indigo-600" /> 雲端資料庫總覽</h2><p className="text-sm text-gray-500 mt-1">共 {filteredRecords.length} 筆資料</p></div>
           <div className="flex flex-col sm:flex-row gap-2.5">
             <div className="relative"><Search className="absolute left-3 top-2.5 text-gray-400" size={16}/><input type="text" placeholder="搜尋..." value={searchTerm} onChange={e=>setSearchTerm(e.target.value)} className="pl-9 pr-3 py-2 bg-gray-50 border rounded-xl text-sm w-full"/></div>
+            <select value={filterGender} onChange={e=>setFilterGender(e.target.value)} className="p-2 bg-gray-50 border rounded-xl text-sm font-semibold"><option value="">所有組別</option><option value="男">男子組</option><option value="女">女子組</option></select>
             <select value={filterComp} onChange={e=>setFilterComp(e.target.value)} className="p-2 bg-gray-50 border rounded-xl text-sm"><option value="">所有賽事</option>{uniqueCompetitions.map(c=><option key={c}>{c}</option>)}</select>
             <select value={filterEvent} onChange={e=>setFilterEvent(e.target.value)} className="p-2 bg-gray-50 border rounded-xl text-sm"><option value="">所有項目</option>{uniqueEvents.map(e=><option key={e}>{e}</option>)}</select>
           </div>
@@ -454,7 +457,7 @@ export default function TrackAndFieldManager() {
         <div className="overflow-x-auto rounded-xl border border-gray-100">
           <table className="min-w-full divide-y divide-gray-200 text-sm">
             <thead className="bg-gray-50 text-gray-600 font-bold">
-              <tr><th className="px-6 py-3.5 text-left">賽事</th><th className="px-6 py-3.5 text-left">項目</th><th className="px-6 py-3.5 text-left">姓名</th><th className="px-6 py-3.5 text-left">成績</th><th className="px-6 py-3.5 text-left">名次</th><th className="px-6 py-3.5 text-right">操作</th></tr>
+              <tr><th className="px-6 py-3.5 text-left">組別</th><th className="px-6 py-3.5 text-left">賽事</th><th className="px-6 py-3.5 text-left">項目</th><th className="px-6 py-3.5 text-left">姓名</th><th className="px-6 py-3.5 text-left">成績</th><th className="px-6 py-3.5 text-left">名次</th><th className="px-6 py-3.5 text-right">操作</th></tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {filteredRecords.map(r => {
@@ -463,6 +466,7 @@ export default function TrackAndFieldManager() {
                   <tr key={r.id} className="hover:bg-gray-50">
                     {isEditing ? (
                       <>
+                        <td className="px-4 py-3"><select className="w-full border p-1 rounded" value={editForm.gender || '男'} onChange={e=>setEditForm({...editForm, gender: e.target.value})}><option value="男">男</option><option value="女">女</option></select></td>
                         <td className="px-4 py-3"><input className="w-full border p-1 rounded" value={editForm.competition} onChange={e=>setEditForm({...editForm, competition: e.target.value})} /></td>
                         <td className="px-4 py-3"><input className="w-full border p-1 rounded" value={editForm.event} onChange={e=>setEditForm({...editForm, event: e.target.value})} /></td>
                         <td className="px-4 py-3"><input className="w-full border p-1 rounded" value={editForm.athlete} onChange={e=>setEditForm({...editForm, athlete: e.target.value})} /></td>
@@ -472,7 +476,7 @@ export default function TrackAndFieldManager() {
                       </>
                     ) : (
                       <>
-                        <td className="px-6 py-4">{r.competition}</td><td className="px-6 py-4 font-bold text-indigo-600">{r.event}</td><td className="px-6 py-4 font-semibold">{r.athlete}</td><td className="px-6 py-4 font-black">{r.score}</td>
+                        <td className="px-6 py-4"><span className={`px-2 py-1 rounded-md text-xs font-bold ${r.gender === '女' ? 'bg-pink-100 text-pink-700' : 'bg-blue-100 text-blue-700'}`}>{r.gender || '男'}</span></td><td className="px-6 py-4">{r.competition}</td><td className="px-6 py-4 font-bold text-indigo-600">{r.event}</td><td className="px-6 py-4 font-semibold">{r.athlete}</td><td className="px-6 py-4 font-black">{r.score}</td>
                         <td className="px-6 py-4">{r.rank ? <span className="bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full text-xs font-bold">第 {r.rank} 名</span> : '-'}</td>
                         <td className="px-6 py-4 text-right"><button onClick={()=>{setEditingId(r.id); setEditForm(r);}} className="text-indigo-600 p-1 mr-1"><Edit2 size={16}/></button><button onClick={()=>deleteRec(r.id)} className="text-rose-500 p-1"><Trash2 size={16}/></button></td>
                       </>
