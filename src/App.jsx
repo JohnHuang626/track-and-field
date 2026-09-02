@@ -560,6 +560,33 @@ export default function TrackAndFieldManager() {
       reader.readAsText(file);
     };
 
+    const handleDeleteAll = async () => {
+      if (!user) { showMessage('連線錯誤，無法執行', true); return; }
+      if (records.length === 0) { showMessage('目前沒有任何資料可以清空', true); return; }
+
+      const firstConfirm = window.confirm('⚠️ 警告：您即將刪除雲端「所有」成績資料！\n\n此操作完全無法復原，強烈建議您先點擊上方「匯出 CSV」進行備份。\n您確定要繼續嗎？');
+      if (!firstConfirm) return;
+
+      const confirmText = window.prompt('🚨 防呆確認：\n為防止誤刪，請手動輸入「確認刪除」四個字來執行清空動作：');
+      if (confirmText !== '確認刪除') {
+        showMessage('已取消清空動作');
+        return;
+      }
+
+      try {
+        const batch = writeBatch(db);
+        records.forEach(r => {
+          const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'trackRecords', r.id);
+          batch.delete(docRef);
+        });
+        await batch.commit();
+        showMessage('✅ 所有資料已成功從雲端清空！');
+      } catch (err) {
+        console.error(err);
+        showMessage('清空失敗，請檢查網路連線', true);
+      }
+    };
+
     return (
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm p-6 border border-gray-100">
@@ -587,6 +614,14 @@ export default function TrackAndFieldManager() {
                 <Upload size={16}/> 批量匯入 CSV 資料
                 <input type="file" accept=".csv" className="hidden" ref={fileInputRef} onChange={importCSV} />
               </label>
+            </div>
+            
+            <div className="mt-6 pt-5 border-t border-rose-100">
+              <h3 className="text-rose-600 font-bold mb-2 flex items-center gap-1.5"><AlertCircle size={16} /> 危險區域 (Danger Zone)</h3>
+              <p className="text-xs text-gray-500 mb-4 leading-relaxed">清空雲端所有的成績紀錄。此動作不可逆，請務必先執行上方的匯出備份。</p>
+              <button onClick={handleDeleteAll} className="w-full bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold py-2.5 px-4 rounded-xl border border-rose-200 text-sm flex justify-center items-center gap-2 transition">
+                <Trash2 size={16}/> 永久清空所有資料
+              </button>
             </div>
           </div>
           <div className="mt-8 p-4 bg-slate-50 rounded-xl text-xs text-slate-500 border border-slate-100"><p className="font-semibold text-slate-700 mb-1">雲端連線狀態：</p>{user ? <span className="text-emerald-600 font-bold flex items-center gap-1">🟢 已連線至資料庫</span> : <span className="text-amber-500 font-bold flex items-center gap-1">🟡 連線中...</span>}</div>
