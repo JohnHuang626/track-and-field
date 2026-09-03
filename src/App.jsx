@@ -334,12 +334,12 @@ export default function TrackAndFieldManager() {
               <h3 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2"><List className="text-gray-500"/> 參賽歷史明細</h3>
               <table className="min-w-full divide-y divide-gray-200 text-sm">
                 <thead>
-                  <tr className="bg-gray-50 text-gray-500"><th className="px-4 py-3 text-left">賽事</th><th className="px-4 py-3 text-left">項目</th><th className="px-4 py-3 text-left">成績</th><th className="px-4 py-3 text-left">名次</th></tr>
+                  <tr className="bg-gray-50 text-gray-500"><th className="px-4 py-3 text-left">日期</th><th className="px-4 py-3 text-left">賽事</th><th className="px-4 py-3 text-left">項目</th><th className="px-4 py-3 text-left">成績</th><th className="px-4 py-3 text-left">名次</th></tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {athleteRecords.map(r => (
                     <tr key={r.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3 text-gray-800">{r.competition}</td><td className="px-4 py-3 font-semibold text-indigo-600">{r.event}</td><td className="px-4 py-3 font-bold">{r.score}</td>
+                      <td className="px-4 py-3 text-gray-400 whitespace-nowrap">{r.date || '-'}</td><td className="px-4 py-3 text-gray-800">{r.competition}</td><td className="px-4 py-3 font-semibold text-indigo-600">{r.event}</td><td className="px-4 py-3 font-bold">{r.score}</td>
                       <td className="px-4 py-3">{r.rank ? <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800">第 {r.rank} 名</span> : '-'}</td>
                     </tr>
                   ))}
