@@ -514,7 +514,8 @@ export default function TrackAndFieldManager() {
   // View 5: 新增與管理 (匯出匯入)
   // -------------------------------------------------------------
   const AddManageView = () => {
-    const [formData, setFormData] = useState({ gender: '男', competition: '', event: '', athlete: '', score: '', rank: '' });
+    const todayStr = new Date().toISOString().split('T')[0];
+    const [formData, setFormData] = useState({ date: todayStr, gender: '男', competition: '', event: '', athlete: '', score: '', rank: '' });
     const [adminPwd, setAdminPwd] = useState('');
     const fileInputRef = useRef(null);
 
@@ -525,13 +526,13 @@ export default function TrackAndFieldManager() {
         const colRef = collection(db, 'artifacts', appId, 'public', 'data', 'trackRecords');
         await addDoc(colRef, formData);
         showMessage('已成功寫入雲端資料庫！');
-        setFormData({ ...formData, athlete: '', score: '', rank: '' }); // 保留賽事跟項目與組別方便連打
+        setFormData({ ...formData, athlete: '', score: '', rank: '' }); // 保留日期跟賽事跟項目與組別方便連打
       } catch (err) { console.error(err); showMessage('新增失敗', true); }
     };
 
     const exportCSV = () => {
-      const headers = ['組別', '賽事名稱', '比賽項目', '選手姓名', '成績', '名次'];
-      const rows = records.map(r => [r.gender || '男', r.competition, r.event, r.athlete, r.score, r.rank || '']);
+      const headers = ['賽事日期', '組別', '賽事名稱', '比賽項目', '選手姓名', '成績', '名次'];
+      const rows = records.map(r => [r.date || '', r.gender || '男', r.competition, r.event, r.athlete, r.score, r.rank || '']);
       const csvContent = '\uFEFF' + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
       const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
@@ -555,21 +556,28 @@ export default function TrackAndFieldManager() {
           let count = 0;
           
           const headerCols = lines[0].split(',').map(h => h.trim());
-          const isNewFormat = headerCols[0] === '組別';
+          const hasDateColumn = headerCols[0] === '賽事日期';
+          const isNewFormat = headerCols[0] === '組別' || hasDateColumn;
 
           for (let i = 1; i < lines.length; i++) {
             const cols = lines[i].split(',').map(c => c.trim());
-            if (isNewFormat) {
+            if (hasDateColumn) {
+              if (cols.length >= 6 && cols[2] && cols[5]) {
+                const newDocRef = doc(colRef);
+                batch.set(newDocRef, { date: cols[0], gender: cols[1], competition: cols[2], event: cols[3], athlete: cols[4], score: cols[5], rank: cols[6] || '' });
+                count++;
+              }
+            } else if (isNewFormat) {
               if (cols.length >= 5 && cols[1] && cols[4]) {
                 const newDocRef = doc(colRef);
-                batch.set(newDocRef, { gender: cols[0], competition: cols[1], event: cols[2], athlete: cols[3], score: cols[4], rank: cols[5] || '' });
+                batch.set(newDocRef, { date: '', gender: cols[0], competition: cols[1], event: cols[2], athlete: cols[3], score: cols[4], rank: cols[5] || '' });
                 count++;
               }
             } else {
               // 兼容舊版 5 欄位的 CSV 備份
               if (cols.length >= 4 && cols[0] && cols[3]) {
                 const newDocRef = doc(colRef);
-                batch.set(newDocRef, { gender: '男', competition: cols[0], event: cols[1], athlete: cols[2], score: cols[3], rank: cols[4] || '' });
+                batch.set(newDocRef, { date: '', gender: '男', competition: cols[0], event: cols[1], athlete: cols[2], score: cols[3], rank: cols[4] || '' });
                 count++;
               }
             }
@@ -635,6 +643,7 @@ export default function TrackAndFieldManager() {
           <h2 className="text-2xl font-bold mb-6 flex items-center gap-2"><PlusCircle className="text-indigo-600"/> 新增成績至雲端</h2>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div><label className="block text-xs font-semibold text-gray-600 mb-1">賽事日期 *</label><input type="date" required className="w-full p-2.5 border rounded-xl bg-white font-semibold text-gray-700" value={formData.date} onChange={e=>setFormData({...formData, date: e.target.value})}/></div>
               <div><label className="block text-xs font-semibold text-gray-600 mb-1">組別 *</label><select required className="w-full p-2.5 border rounded-xl bg-white font-semibold text-gray-700" value={formData.gender} onChange={e=>setFormData({...formData, gender: e.target.value})}><option value="男">男子組</option><option value="女">女子組</option></select></div>
               <div><label className="block text-xs font-semibold text-gray-600 mb-1">賽事名稱 *</label><input required list="dl-comps" className="w-full p-2.5 border rounded-xl" value={formData.competition} onChange={e=>setFormData({...formData, competition: e.target.value})}/><datalist id="dl-comps">{uniqueCompetitions.map(c=><option key={c} value={c}/>)}</datalist></div>
               <div><label className="block text-xs font-semibold text-gray-600 mb-1">比賽項目 *</label><input required list="dl-evts" className="w-full p-2.5 border rounded-xl" value={formData.event} onChange={e=>setFormData({...formData, event: e.target.value})}/><datalist id="dl-evts">{uniqueEvents.map(c=><option key={c} value={c}/>)}</datalist></div>
