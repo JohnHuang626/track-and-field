@@ -1113,7 +1113,11 @@ export default function App() {
       <header className="bg-slate-900 text-white sticky top-0 z-50 shadow-md">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
-            <div className="flex items-center gap-3">
+            <div 
+              className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-opacity" 
+              onClick={() => setActiveTab('best')}
+              title="回到歷年最佳首頁"
+            >
               <div className="w-10 h-10 rounded-2xl bg-indigo-600 flex items-center justify-center text-xl shadow-inner">
                 🏆
               </div>
