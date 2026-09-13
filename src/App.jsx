@@ -19,12 +19,12 @@ import {
 // ----------------------------------------------------------------------
 // 若要在您的 Firebase 雲端環境連線，請確認此處的金鑰設定
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyB68u1wK495yoIUmD7O8qiT-ktt52SPuMY",
+  authDomain: "track-and-field-7a7c6.firebaseapp.com",
+  projectId: "track-and-field-7a7c6",
+  storageBucket: "track-and-field-7a7c6.firebasestorage.app",
+  messagingSenderId: "188366563669",
+  appId: "1:188366563669:web:7a15c130b751a2a93ea7dc"
 };
 
 let db = null;
