@@ -94,6 +94,9 @@ export default function App() {
   });
   const [bestGender, setBestGender] = useState('男');
   const [loading, setLoading] = useState(false);
+  
+  // 新增：將管理員解鎖狀態移到系統最外層，這樣切換分頁就不會被重置
+  const [isAdminUnlocked, setIsAdminUnlocked] = useState(false);
 
   // 同步資料至 LocalStorage
   useEffect(() => {
@@ -772,7 +775,8 @@ export default function App() {
   const AddRecordForm = () => {
     // 獨立於元件內的密碼狀態，避免輸入時焦點跑位
     const [passwordInput, setPasswordInput] = useState('');
-    const [isAdminUnlocked, setIsAdminUnlocked] = useState(false);
+    
+    // 注意： isAdminUnlocked 已經被移至最外層的 App() 中管理！
 
     const [formData, setFormData] = useState({
       date: new Date().toISOString().split('T')[0],
@@ -787,7 +791,7 @@ export default function App() {
     const handleUnlock = (e) => {
       e.preventDefault();
       if (passwordInput === 'admin888') {
-        setIsAdminUnlocked(true);
+        setIsAdminUnlocked(true); // 更新最外層的解鎖狀態
       } else {
         alert('密碼錯誤，請重新輸入！');
         setPasswordInput('');
